@@ -1,2 +1,0 @@
-# BoT
-Banana on Twitch
