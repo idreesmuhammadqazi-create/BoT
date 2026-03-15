@@ -1,32 +1,41 @@
-import asyncio, base64, os
+import socket, base64, os, time
 from dotenv import load_dotenv
-from twitchio.ext import commands
+
 load_dotenv()
+
+TOKEN   = os.getenv("BOT_TOKEN")
+NICK    = os.getenv("BOT_USERNAME")
+CHANNEL = "#" + os.getenv("CHANNEL")
+
 def makechunks(path, chunksize=400):
     bytes = open(path, "rb").read()
     base64str = base64.b64encode(bytes).decode()
     chunks = []
-    for i in range(0,len(base64str), chunksize):
-        chunks.append(base64str[i : i +chunksize])
+    for i in range(0, len(base64str), chunksize):
+        chunks.append(base64str[i : i + chunksize])
     return chunks
-location = str(input("where is the file and whats its name? : ")) 
+
+location = input("where is the file and whats its name? : ")
 chunks = makechunks(location)
-class Bot(commands.Bot):
-    def __init__(self):
-        super().__init__(
-            token=os.getenv("BOT_TOKEN"),
-            client_id=os.getenv("CLIENT_ID"),
-            prefix="!",
-            initial_channels=[os.getenv("CHANNEL")],
-            bot_id=os.getenv("BOT_ID"),
-            client_secret=os.getenv("CLIENT_SECRET"),
-        )
-    async def event_ready(self):
-        ch = self.get_channel(os.getenv("CHANNEL"))
-        await ch.send(f"DATA:HEADER total={len(chunks)}")
-        for i, chunk in enumerate(chunks):
-            await ch.send(f"DATA:{i:05d}:{chunk}")
-            await asyncio.sleep(1.6)
-        await ch.send("DATA:EOF")
-        print("spamming successful")
-Bot().run()
+
+# connect to twitch IRC
+irc = socket.socket()
+irc.connect(("irc.chat.twitch.tv", 6667))
+irc.send(f"PASS {TOKEN}\r\n".encode())
+irc.send(f"NICK {NICK}\r\n".encode())
+irc.send(f"JOIN {CHANNEL}\r\n".encode())
+time.sleep(2)
+
+def send(msg):
+    irc.send(f"PRIVMSG {CHANNEL} :{msg}\r\n".encode())
+    time.sleep(1.6)
+
+print(f"sending {len(chunks)} chunks...")
+send(f"DATA:HEADER total={len(chunks)}")
+for i, chunk in enumerate(chunks):
+    send(f"DATA:{i:05d}:{chunk}")
+    if i % 10 == 0:
+        print(f"  {i}/{len(chunks)}")
+send("DATA:EOF")
+print("spamming successful")
+irc.close()
