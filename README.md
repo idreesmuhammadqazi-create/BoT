@@ -75,7 +75,7 @@ But mostly: because it's cursed, it works (loosely), and nobody can stop us.
 1. Shell out to `TwitchDownloaderCLI` to fetch the VOD chat log as JSON
 2. Parse the JSON *(described in the source as `"dowload chat logs ...."` — sic)*
 3. Find all `DATA:` messages, reassemble in order
-4. Verify chunk count *(the error message reads `"toatal chunks vs actual chunks dont match"` — also sic)*
+4. Verify chunk count 
 5. Base64-decode
 6. Write file to disk
 7. Pray
