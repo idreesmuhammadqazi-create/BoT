@@ -112,6 +112,8 @@ But the *concept* was proven. Mostly.
 | Bot banned | ✅ |
 | Regrets | none |
 
+For the full experience, we have included documentary evidence: **[`i got banned.mp4`](i%20got%20banned.mp4)** — a video recording of the upload in progress, the `DATA:` messages scrolling through un1v249's chat, and the exact moment the ban landed at chunk 10. It is 6.4 MB of pure hubris.
+
 The lesson here is that active mods are the enemy of distributed storage. A sleepy 3 AM stream with 12 viewers is a far more reliable upload target. We are not recommending this. We are simply observing it.
 
 > **⚠️ Disclaimer:** We are *legally obligated* to tell you this is a terrible idea and you should absolutely only use your own channel. Spamming someone else's chat is against Twitch's Terms of Service, rude, chaotic, and the kind of thing that gets you banned from the platform.
