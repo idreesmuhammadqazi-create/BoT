@@ -15,12 +15,15 @@ Your "storage address" is a Twitch VOD ID. Your "hard drive" is Twitch's servers
 
 ```
 twitch-storage/
-├── upload.py          # bot that sends file → chat
-├── download.py        # pulls chat log → reconstructs file
+├── main.py            # unified CLI entry point (upload + download subcommands)
+├── upload.py          # original upload script (superseded by main.py)
+├── download.py        # original download script (superseded by main.py)
+├── build.bat          # Windows build script → compiles main.py to dist\twitch-storage.exe
+├── build.sh           # Linux/macOS build script (if needed)
 ├── requirements.txt
 ├── .env               # tokens and config (never commit this)
 ├── banana.png         # test input
-└── PLANNING.md        # this file
+└── plan.md            # this file
 ```
 
 ---
@@ -30,48 +33,50 @@ twitch-storage/
 - [ ] Create a second Twitch account for the bot (e.g. `banana_storage_bot`)
 - [ ] Register a Twitch Developer App at dev.twitch.tv/console (logged in as main account)
 - [ ] Generate a bot OAuth token with scopes `user:bot`, `user:read:chat`, `user:write:chat` via twitchtokengenerator.com (logged in as bot account)
-- [ ] Save Client ID, Client Secret, Bot Token, Bot User ID, and channel name to `.env`
+- [ ] Save Bot Token, Bot Username, and channel name to `.env` as `BOT_TOKEN`, `BOT_USERNAME`, `CHANNEL`
 - [ ] Download TwitchDownloaderCLI binary for your OS from GitHub releases
 - [ ] Install ffmpeg (TwitchDownloader dependency)
-- [ ] `pip install twitchio python-dotenv`
+- [ ] Run `build.bat` to compile the standalone `dist\twitch-storage.exe`
 - [ ] Verify bot account is email-verified on Twitch
 
 ---
 
 ## Implementation Plan
 
-### Phase 1 — Encoder (`upload.py`)
+### Phase 1 — Encoder (`upload.py` → `main.py upload`)
 
-- [ ] Load config from `.env`
-- [ ] Read file, base64-encode, split into 200-char chunks
+- [x] Load config from `.env`
+- [x] Read file, base64-encode, split into chunks (400 chars; plan said 200 — we felt adventurous)
 - [ ] Print estimated send time before starting
-- [ ] Connect bot to channel via twitchio
-- [ ] On `event_ready`: send `DATA:HEADER` message with total chunk count and filename
-- [ ] Send each chunk as `DATA:XXXXX:...` with zero-padded index
-- [ ] 1.6 second delay between messages (rate limit safety)
-- [ ] Print progress every 10 chunks
-- [ ] Send `DATA:EOF` on completion
+- [x] Connect bot to channel via raw TCP socket (plan said `twitchio`; the socket disagreed)
+- [x] Send `DATA:HEADER` message with total chunk count
+- [x] Send each chunk as `DATA:XXXXX:...` with zero-padded index
+- [x] 1.6 second delay between messages (configurable via `--delay`)
+- [x] Print progress every 10 chunks
+- [x] Send `DATA:EOF` on completion
 - [ ] Prompt user to save the VOD ID
 
-### Phase 2 — Decoder (`download.py`)
+### Phase 2 — Decoder (`download.py` → `main.py download`)
 
-- [ ] Accept VOD ID as CLI argument or prompt
-- [ ] Call TwitchDownloaderCLI via subprocess to download chat JSON
+- [x] Accept VOD ID as CLI argument
+- [x] Call TwitchDownloaderCLI via subprocess to download chat JSON
 - [ ] Cache the JSON locally so re-runs don't re-download
-- [ ] Parse JSON, filter messages by bot username and `DATA:` prefix
-- [ ] Handle HEADER, chunk, and EOF message types
-- [ ] Warn if chunk count doesn't match HEADER total
-- [ ] Sort chunks by index, join base64, decode to bytes
-- [ ] Write output file
-- [ ] Print recovered file size and path
+- [x] Parse JSON, filter messages by bot username and `DATA:` prefix
+- [x] Handle HEADER, chunk, and EOF message types
+- [x] Warn if chunk count doesn't match HEADER total
+- [x] Sort chunks by index, join base64, decode to bytes
+- [x] Write output file
+- [x] Print recovered file path
 
 ### Phase 3 — Polish
 
-- [ ] `.env` file with all config (no hardcoded secrets)
-- [ ] `requirements.txt`
+- [x] `.env` file with all config (no hardcoded secrets)
+- [x] `requirements.txt`
 - [ ] Graceful handling if bot gets rate-limited mid-upload (retry logic)
-- [ ] CLI flag `--chunk-size` to tune message length
-- [ ] README with full setup + usage instructions
+- [x] CLI flag `--chunk-size` to tune message length
+- [x] CLI flag `--delay` to tune message delay
+- [x] README with full setup + usage instructions
+- [x] Compiled to standalone `.exe` via PyInstaller (`build.bat`)
 - [ ] Hackatime tracking active in editor
 
 ---
@@ -102,8 +107,9 @@ twitch-storage/
 
 ## Success Criteria
 
-- [ ] `banana.png` uploads via bot without errors
-- [ ] VOD chat log downloadable via TwitchDownloaderCLI
-- [ ] Decoded file is byte-for-byte identical to the original
-- [ ] `md5sum banana.png` == `md5sum banana_recovered.png`
-- [ ] Full round-trip works start to finish with no manual steps beyond starting the stream
+- [x] `banana.png` uploads via bot without errors
+- [x] VOD chat log downloadable via TwitchDownloaderCLI
+- [x] Decoded file is byte-for-byte identical to the original
+- [x] `md5sum banana.png` == `md5sum banana_recovered.png`
+- [x] Full round-trip works start to finish with no manual steps beyond starting the stream
+- [x] Compiled to a standalone `twitch-storage.exe` — no Python required on target machine

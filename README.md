@@ -6,6 +6,7 @@
 ![Uptime](https://img.shields.io/badge/Uptime-~60%20days-yellow?style=flat-square)
 ![Reliability](https://img.shields.io/badge/Reliability-lol-red?style=flat-square)
 ![Dependencies](https://img.shields.io/badge/Dependencies-python--dotenv%20%2B%20vibes-blue?style=flat-square)
+![CLI](https://img.shields.io/badge/Interface-CLI%20binary-green?style=flat-square)
 ![Plan vs Reality](https://img.shields.io/badge/Plan%20vs%20Reality-diverged%20immediately-orange?style=flat-square)
 
 ---
@@ -60,22 +61,22 @@ But mostly: because it's cursed, it works (loosely), and nobody can stop us.
                                         └─────────────────────┘
 ```
 
-### Upload (`upload.py`)
+### Upload (`twitch-storage.exe upload`)
 
-1. Read `banana.png`
+1. Read any file you point it at
 2. Base64-encode it (adding a cheerful 33% overhead — you're welcome)
 3. Split into **400-character chunks** *(the plan said 200, but we felt adventurous)*
 4. Open a **raw TCP socket** to Twitch IRC *(the plan said to use the `twitchio` library; the code said "no")*
 5. Send `DATA:HEADER total=N`, then `DATA:00001:<chunk>`, `DATA:00002:<chunk>`, ..., then `DATA:EOF`
-6. Wait **1.6 seconds between each message** to avoid Twitch's rate limiter
+6. Wait **1.6 seconds between each message** to avoid Twitch's rate limiter (configurable via `--delay`)
 7. Go make a coffee. Come back. Make another coffee.
 
-### Download (`download.py`)
+### Download (`twitch-storage.exe download`)
 
 1. Shell out to `TwitchDownloaderCLI` to fetch the VOD chat log as JSON
 2. Parse the JSON *(described in the source as `"dowload chat logs ...."` — sic)*
 3. Find all `DATA:` messages, reassemble in order
-4. Verify chunk count 
+4. Verify chunk count
 5. Base64-decode
 6. Write file to disk
 7. Pray
@@ -125,28 +126,33 @@ The lesson here is that active mods are the enemy of distributed storage. A slee
 
 ## Installation
 
-You'll need:
+### Option A — Compiled binary (recommended, Windows)
 
-- Python 3.x
-- `python-dotenv` (the **only** dependency — we're practically minimalist)
-- `TwitchDownloaderCLI` somewhere on your `PATH`
-- A Twitch account and OAuth token
-- A Twitch channel to desecrate
-- Patience. So much patience.
+1. Grab the `twitch-storage.exe` from `dist\` (or build it yourself — see below)
+2. Place `twitch-storage.exe` and `TwitchDownloaderCLI.exe` in the same folder
+3. Create a `.env` file in that same folder (see below)
+4. Run from Command Prompt — no Python required
 
-```bash
+### Option B — Build it yourself
+
+You'll need Python 3.x installed and on PATH.
+
+```bat
 git clone https://github.com/you/BoT.git
 cd BoT
-pip install -r requirements.txt  # it's literally just python-dotenv
+build.bat
 ```
 
-Create a `.env` file:
+`build.bat` will install `pyinstaller` and `python-dotenv` automatically, then produce `dist\twitch-storage.exe`.
+
+### .env file
+
+Create a `.env` file next to the binary:
 
 ```env
-TWITCH_OAUTH_TOKEN=oauth:your_token_here
-TWITCH_CHANNEL=some_poor_channel
-TWITCH_USERNAME=your_bot_username
-TWITCH_VOD_ID=the_vod_id_you_just_created
+BOT_TOKEN=oauth:your_token_here
+CHANNEL=some_poor_channel
+BOT_USERNAME=your_bot_username
 ```
 
 ---
@@ -155,24 +161,38 @@ TWITCH_VOD_ID=the_vod_id_you_just_created
 
 ### Upload a file
 
-```bash
-python upload.py
+```bat
+twitch-storage.exe upload banana.png
 ```
 
 Then wait. And wait. For a 100 KB file, you're looking at approximately **18 minutes**. This is not a bug. This is the rate limiter. This is your life now.
 
-### Download a file
+Optional flags:
 
-```bash
-python download.py
+```bat
+:: Tune chunk size (default: 400 chars)
+twitch-storage.exe upload banana.png --chunk-size 300
+
+:: Tune delay between messages in seconds (default: 1.6)
+twitch-storage.exe upload banana.png --delay 2.0
+
+:: Both at once
+twitch-storage.exe upload banana.png --chunk-size 300 --delay 2.0
 ```
 
-This shells out to `TwitchDownloaderCLI`, downloads the VOD chat log, and attempts to reconstruct your file from the digital wreckage.
+### Download a file
+
+```bat
+twitch-storage.exe download <VOD_ID> recovered.png
+```
+
+Replace `<VOD_ID>` with the numeric ID from the Twitch VOD URL. This shells out to `TwitchDownloaderCLI`, downloads the VOD chat log, and attempts to reconstruct your file from the digital wreckage.
 
 ### Verify success
 
-```bash
-md5sum banana.png banana_recovered.png
+```bat
+:: PowerShell
+Get-FileHash banana.png, recovered.png -Algorithm MD5
 ```
 
 If the hashes match: 🎉 The banana has returned.  
@@ -194,7 +214,7 @@ If they don't: 🤷 The banana is gone. It was always going to be gone.
 | **Typos in error messages** | `"toatal"`, `"dowload"` | ✍️ |
 | **Raw socket to Twitch IRC** | Because `twitchio` was too easy | 🔌 |
 | **Chunk size disagreement** | Plan: 200 chars. Code: 400 chars. | 🤷 |
-| **Single file hardcoded** | It's always `banana.png` | 🍌 |
+| **Single file hardcoded** | ~~It's always `banana.png`~~ Fixed — pass any file as a CLI argument | ✅ |
 | **Reliability** | lol | 💀 |
 
 ### On the 60-Day Expiry
@@ -224,7 +244,7 @@ A: Absolutely. We define "production" as "it ran once and the banana came back."
 A: Your file is gone. There is no retry logic. The plan mentioned retry logic. The plan was optimistic.
 
 **Q: Can I store files other than `banana.png`?**  
-A: Technically yes, if you modify the hardcoded filename. We leave this as an exercise for the reader.
+A: Yes. Just pass any file path as the first argument: `twitch-storage.exe upload path\to\whatever.zip`.
 
 **Q: Why is it called BoT?**  
 A: Presumably "Banana on Twitch." Possibly "Bane of Twitch." Maybe just "Bot." 
