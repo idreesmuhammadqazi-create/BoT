@@ -17,7 +17,7 @@ if errorlevel 1 (
 )
 
 echo [build] Compiling main.py -^> dist\twitch-storage.exe ...
-pyinstaller --onefile --name twitch-storage --hidden-import dotenv main.py
+python -m PyInstaller --onefile --name twitch-storage --hidden-import dotenv main.py
 
 echo.
 echo [build] Done!  Binary is at: dist\twitch-storage.exe
