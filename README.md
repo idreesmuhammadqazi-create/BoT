@@ -87,7 +87,7 @@ But mostly: because it's cursed, it works (loosely), and nobody can stop us.
 
 *Congratulations. You've mastered the basics. Now let's talk about the **power user** workflow.*
 
-The `.env` file has a field called `TWITCH_CHANNEL`. Technically, this can be set to **any** Twitch channel. Including one that belongs to someone who has no idea you exist.
+The `.env` file has a field called `CHANNEL`. Technically, this can be set to **any** Twitch channel. Including one that belongs to someone who has no idea you exist.
 
 This is not a hypothetical. This has been tested. In production. On a real streamer.
 
@@ -128,17 +128,25 @@ The lesson here is that active mods are the enemy of distributed storage. A slee
 
 ### Option A — Compiled binary (recommended, Windows)
 
-1. Grab the `twitch-storage.exe` from `dist\` (or build it yourself — see below)
-2. Place `twitch-storage.exe` and `TwitchDownloaderCLI.exe` in the same folder
-3. Create a `.env` file in that same folder (see below)
-4. Run from Command Prompt — no Python required
+Download everything you need from the [**v2 release**](https://github.com/idreesmuhammadqazi-create/BoT/releases/tag/v2):
+
+| File | Size | What it is |
+|---|---|---|
+| [`twitch-storage.exe`](https://github.com/idreesmuhammadqazi-create/BoT/releases/download/v2/twitch-storage.exe) | 6.97 MB | The BoT CLI — upload & download subcommands |
+| [`TwitchDownloaderCLI.exe`](https://github.com/idreesmuhammadqazi-create/BoT/releases/download/v2/TwitchDownloaderCLI.exe) | 65.3 MB | Required for the `download` command |
+| [`COPYRIGHT.txt`](https://github.com/idreesmuhammadqazi-create/BoT/releases/download/v2/COPYRIGHT.txt) | 2.15 KB | Copyright notice |
+| [`THIRD-PARTY-LICENSES.txt`](https://github.com/idreesmuhammadqazi-create/BoT/releases/download/v2/THIRD-PARTY-LICENSES.txt) | 153 KB | Third-party licenses bundled in the binary |
+
+1. Download `twitch-storage.exe` and `TwitchDownloaderCLI.exe` into the **same folder**
+2. Create a `.env` file in that folder (see below)
+3. Open Command Prompt in that folder and run — no Python required
 
 ### Option B — Build it yourself
 
 You'll need Python 3.x installed and on PATH.
 
 ```bat
-git clone https://github.com/you/BoT.git
+git clone https://github.com/idreesmuhammadqazi-create/BoT.git
 cd BoT
 build.bat
 ```
